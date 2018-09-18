@@ -34,14 +34,14 @@ class Inference:
 
 		rospy.init_node('inference', anonymous=True)
 
-		VELODYNE_SUB_TOPIC = "/graph_node/point2_fuser"
+		VELODYNE_SUB_TOPIC = "/velodyne_points"
 		DETECTOR_SUB_TOPIC = "/adaptive_clustering/clusters"
 		MARKER_SUB_TOPOC = "/adaptive_clustering/markers"
 		#POSE_SUB_TOPIC = "/object3d_detector/poses"
 		MARKER_PUB_TOPOC = "/adaptive_clustering/object_markers"
 		STATIC_VELODYNE_PUB_TOPIC = "/static_velodyne_points"
 
-		self.tf_model_path = rospy.get_param('~tf_model_path', 'warehouse_demo')
+		self.tf_model_path = rospy.get_param('~tf_model_path', 'ncfm_demo2')
                 print self.tf_model_path
 		self.sensor_frame_id = rospy.get_param('~sensor_frame_id', 'velodyne') #velodyne_front
 
@@ -131,10 +131,10 @@ class Inference:
 		feed = {self.model.input_data: Image}
 		output, feature, pred = self.sess.run([self.model.output, self.model.feature, self.model.pred], feed)
 
-		#index = np.nonzero(np.max(np.array(output, dtype=np.float32), axis=1) > 0.95)
-		#pred = np.array(pred, dtype=np.float32)
-		#pred = pred[index[0]]
-		#pred = pred.tolist()
+		index = np.nonzero(np.max(np.array(output, dtype=np.float32), axis=1) > 0.9)
+		pred = np.array(pred, dtype=np.float32)
+		pred = pred[index[0]]
+		pred = pred.tolist()
 
 		# transform detection to /map
 		target_frame = "world"
@@ -157,6 +157,8 @@ class Inference:
 			g = 0
 			b = 0
 
+			print p
+
 			if p == 1:
 				r = 1.0
 			elif p == 2:
@@ -164,7 +166,7 @@ class Inference:
 			elif p == 3:
 				b = 1.0
 			else:
-				r = 0
+				continue
 
 			m.color.r = r
 			m.color.g = g
@@ -199,7 +201,7 @@ class Inference:
 		pointFiledy = PointField('y', 4, 7, 1)
 		pointFieldz = PointField('z', 8, 7, 1)
 		pointFieldi = PointField('intensity', 12, 7, 1)
-		pointFiled = [pointFiledx, pointFiledy, pointFieldz]
+		pointFiled = [pointFiledx, pointFiledy, pointFieldz, pointFieldi]
 
 		header.stamp = rospy.Time.now()
 		static_velodyne = point_cloud2.create_cloud(header, pointFiled, static_cloud)
