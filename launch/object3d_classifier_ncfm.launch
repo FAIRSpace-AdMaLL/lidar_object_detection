@@ -1,0 +1,8 @@
+<launch>
+
+  <!-- Deep Net Inference NOde -->
+  <node pkg="object3d_detector" type="inference_node.py" name="inference_node" output="screen" respawn="false">
+    <param name="tf_model_path" value="$(find adaptive_clustering)/script/ncfm_demo"/>
+  </node>
+  
+</launch>
