@@ -18,7 +18,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/MarkerArray.h>
-#include "adaptive_clustering/ClusterArray.h"
+#include "lidar_object_detection/ClusterArray.h"
 // PCL
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/filters/voxel_grid.h>
@@ -136,7 +136,7 @@ void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& ros_pc2_in) {
     cloud_filtered_pub_.publish(ros_pc2_out);
   }
   
-  adaptive_clustering::ClusterArray cluster_array;
+  lidar_object_detection::ClusterArray cluster_array;
   geometry_msgs::PoseArray pose_array;
   visualization_msgs::MarkerArray marker_array;
   
@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
 
   /*** Publishers ***/
   ros::NodeHandle private_nh("~");
-  cluster_array_pub_ = private_nh.advertise<adaptive_clustering::ClusterArray>("clusters", 1);
+  cluster_array_pub_ = private_nh.advertise<lidar_object_detection::ClusterArray>("clusters", 1);
   cloud_filtered_pub_ = private_nh.advertise<sensor_msgs::PointCloud2>("cloud_filtered", 1);
   pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("poses", 100);
   marker_array_pub_ = private_nh.advertise<visualization_msgs::MarkerArray>("markers", 1);

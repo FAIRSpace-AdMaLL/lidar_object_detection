@@ -81,8 +81,8 @@ class DataLoader:
 			imgi = self.Image[self.list[self.pointer]]
 			labeli = self.Label[self.list[self.pointer]]
 
-			if self.mode == 'train':
-				imgi[:, :, 0] = self.apply_random_rotate(imgi[:, :, 0])
+			# if self.mode == 'train':
+			# 	imgi[:, :, 0] = self.apply_random_rotate(imgi[:, :, 0])
 
 			x_batch.append(imgi)
 			y_batch.append(labeli)

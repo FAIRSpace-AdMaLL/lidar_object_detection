@@ -1,0 +1,42 @@
+<launch>
+  <!-- rosbag play -->
+  
+  <!--<param name="use_sim_time" value="true"/>-->
+  <!--<arg name="bag"/> <node pkg="rosbag" type="play" name="rosbag_play" args="clock $(arg bag)"/>-->
+
+  <!--<node pkg="tf" type="static_transform_publisher" name="map_to_laserscan0" args="0 0 0 0 0 0 1 map laserscan0 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="map_to_laserscan1" args="0 0 0 0 0 0 1 map laserscan1 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="map_to_velodyne" args="0 0 0 0 0 0 1 map velodyne 100"/> -->
+  
+  <node pkg="velodyne_pointcloud" type="cloud_node" name="cloud_node">
+    <param name="calibration" value="$(find lidar_object_detection)/config/vlp16.yaml"/>
+    <param name="min_range" value="0.4"/>
+    <param name="max_range" value="130.0"/>
+  </node>
+  
+  <!-- FLOBOT 3D Object Detector -->
+  <node pkg="lidar_object_detection" name="adaptive_clustering" type="adaptive_clustering">
+    <param name="sensor_model" value="VLP-16"/>
+    <param name="frame_id" type="string" value="/velodyne"/> <!-- /fuser_laser_link, /graph_node/point2_fuser-->
+    <param name="velodyne_topic" type="string" value="/velodyne_points"/> 
+    <param name="z_axis_min" value="-0.9"/>
+    <param name="object_size_limit" value="true"/>
+    <param name="print_fps" value="true"/>
+  </node>
+
+  <!-- <node pkg="lidar_object_detection" name="inference_node" type="inference_node.py">
+    <param name="tf_model_path" value="$(find lidar_object_detection)/script/ncfm_demo2"/>
+    <param name="sensor_frame_id" value="velodyne"/>
+  </node> -->
+
+
+  <!-- NBellotto's Bayes People Tracker -->
+  <!--<rosparam command="load" file="$(find adaptive_clustering)/config/object3d_detector_ncfm.yaml"/>
+  <node pkg="bayes_people_tracker" type="bayes_people_tracker" name="bayes_people_tracker" output="screen" respawn="false">
+    <param name="base_link" type="string" value="velodyne"/>
+    <param name="target_frame" type="string" value="world"/>
+  </node>-->
+  
+  <!-- ROS Visualization -->
+  <!--<node pkg="rviz" type="rviz" name="rviz" args="-d $(find adaptive_clustering)/config/object3d_detector_ncfm.rviz"/>-->
+</launch>

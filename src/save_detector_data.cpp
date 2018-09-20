@@ -5,7 +5,7 @@
 #include <sensor_msgs/Image.h>
 #include <geometry_msgs/PoseArray.h>
 #include <nav_msgs/Odometry.h>
-#include "adaptive_clustering/ClusterArray.h"
+#include "lidar_object_detection/ClusterArray.h"
 
 // PCL
 #include <pcl_conversions/pcl_conversions.h>
@@ -98,7 +98,7 @@ public:
 
   Eigen::Vector2d map2world(Eigen::Vector2d pos);
   Eigen::Vector2d world2map(Eigen::Vector2d pos);
-  void detectorCallback(const adaptive_clustering::ClusterArrayConstPtr& detect);
+  void detectorCallback(const lidar_object_detection::ClusterArrayConstPtr& detect);
   vector<int> readMap(string map_file);
   int getLabel(int i, int j);
 
@@ -162,7 +162,7 @@ Eigen::Vector2d Detector_Saver::world2map(Eigen::Vector2d pos)
 
 std::ofstream myfile("../info.txt");
 
-void Detector_Saver::detectorCallback(const adaptive_clustering::ClusterArrayConstPtr& detect)
+void Detector_Saver::detectorCallback(const lidar_object_detection::ClusterArrayConstPtr& detect)
 {
 
   tf::TransformListener listener;
@@ -183,9 +183,9 @@ void Detector_Saver::detectorCallback(const adaptive_clustering::ClusterArrayCon
 
   Eigen::Matrix4f T(4,4); 
   pcl_ros::transformAsMatrix (transform, T); 
-  std::cout << "transform from sensor to world: " << T << std::endl;
+  // std::cout << "transform from sensor to world: " << T << std::endl;
   
-  //std::cout << t << endl;
+  // std::cout << t << endl;
 
   // std::vector<geometry_msgs::Pose> vehi_poses = vehi->poses;
   // std::vector<geometry_msgs::Pose> ped_poses = ped->poses;
@@ -270,7 +270,7 @@ void Detector_Saver::detectorCallback(const adaptive_clustering::ClusterArrayCon
     cout << "Saved " << cloud.points.size () << " data points to " << time_s + "_" + i_s + ".txt" << " label: " << label << std::endl;
     for (size_t k = 0; k < cloud.points.size (); ++k)
     {
-       std::cerr << "    " << cloud.points[k].x << " " << cloud.points[k].y << " " << cloud.points[k].z << " " << cloud.points[k].intensity << std::endl;
+       // std::cerr << "    " << cloud.points[k].x << " " << cloud.points[k].y << " " << cloud.points[k].z << " " << cloud.points[k].intensity << std::endl;
        cloud_file << cloud.points[k].x << " " << cloud.points[k].y << " " << cloud.points[k].z << " " << cloud.points[k].intensity << endl;
     }
 
@@ -300,7 +300,7 @@ int main(int argc, char** argv)
   nh.param<std::string>("frame_id", ds.frame_id, std::string("/velodyne"));
 
   string detector_topic = "/adaptive_clustering/clusters";
-  ros::Subscriber detector_sub = nh.subscribe<adaptive_clustering::ClusterArray>(detector_topic, 1, &Detector_Saver::detectorCallback, &ds);
+  ros::Subscriber detector_sub = nh.subscribe<lidar_object_detection::ClusterArray>(detector_topic, 1, &Detector_Saver::detectorCallback, &ds);
 
 
 

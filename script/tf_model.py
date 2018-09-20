@@ -48,7 +48,7 @@ class Model():
         for i, (mpl_size_i, kernel_size_i) in enumerate(zip(args.mpl_size, args.kernel_size)):
             net = tf.layers.conv2d(net, mpl_size_i, kernel_size_i, padding='valid', data_format='channels_last')
             net = tf.nn.relu(net)
-            net = tf.layers.batch_normalization(net, axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True)
+            # net = tf.layers.batch_normalization(net, axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True)
 
 
         # Global Pooling
@@ -60,11 +60,13 @@ class Model():
         for i, mpl in enumerate(args.classification_layers):
             net = tf.layers.dense(net, mpl)
             net = tf.nn.relu(net)
-            net = tf.layers.batch_normalization(net, axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True)
+            # net = tf.layers.batch_normalization(net, axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True)
 
             # Dropout
-            if args.keep_prob < 1.0:
-                net = tf.nn.dropout(net, keep_prob=args.keep_prob)
+            if not is_training:
+                args.keep_pro = 1.0
+
+            net = tf.nn.dropout(net, keep_prob=args.keep_prob)
 
         # visual feature before classification
         self.feature = net

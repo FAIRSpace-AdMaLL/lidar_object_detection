@@ -3,7 +3,7 @@
 # ROS
 import rospy
 import message_filters
-from adaptive_clustering.msg import ClusterArray
+from lidar_object_detection.msg import ClusterArray
 from visualization_msgs.msg import Marker, MarkerArray
 
 from geometry_msgs.msg import PoseStamped, PoseArray, Pose
@@ -41,8 +41,8 @@ class Inference:
 		MARKER_PUB_TOPOC = "/adaptive_clustering/object_markers"
 		STATIC_VELODYNE_PUB_TOPIC = "/static_velodyne_points"
 
-		self.tf_model_path = rospy.get_param('~tf_model_path', 'ncfm_demo2')
-                print self.tf_model_path
+		self.tf_model_path = rospy.get_param('~tf_model_path', 'saved_models')
+		print self.tf_model_path
 		self.sensor_frame_id = rospy.get_param('~sensor_frame_id', 'velodyne') #velodyne_front
 
 		self.load_model()
@@ -123,18 +123,22 @@ class Inference:
 		for cluster in clusters:
 			cloud = self.convertPLmsg2array(cluster)
 			cloud_np = np.asarray(cloud)
+			# nomalise the cluser and intensity
+			cloud_centriod = np.mean(cloud_np[:, :3], axis=0)
+			cloud_np[:, :3] -= cloud_centriod
 			cloud_np[:, -1] = cloud_np[:, -1] / 255.
 			Cloud.append(cloud_np)
+			print cloud_np
 
 		Image = utility.convert2images(Cloud, self.saved_args.input_dim[0])
 
 		feed = {self.model.input_data: Image}
 		output, feature, pred = self.sess.run([self.model.output, self.model.feature, self.model.pred], feed)
 
-		index = np.nonzero(np.max(np.array(output, dtype=np.float32), axis=1) > 0.9)
-		pred = np.array(pred, dtype=np.float32)
-		pred = pred[index[0]]
-		pred = pred.tolist()
+		# index = np.nonzero(np.max(np.array(output, dtype=np.float32), axis=1) > 0.7)
+		# pred = np.array(pred, dtype=np.float32)
+		# pred = pred[index[0]]
+		# pred = pred.tolist()
 
 		# transform detection to /map
 		target_frame = "world"
@@ -157,8 +161,6 @@ class Inference:
 			g = 0
 			b = 0
 
-			print p
-
 			if p == 1:
 				r = 1.0
 			elif p == 2:
@@ -166,7 +168,7 @@ class Inference:
 			elif p == 3:
 				b = 1.0
 			else:
-				continue
+				b = 0.
 
 			m.color.r = r
 			m.color.g = g

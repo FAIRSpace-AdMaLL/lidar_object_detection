@@ -54,7 +54,7 @@ p20
 I100
 sS'keep_prob'
 p21
-F1.0
+F0.5
 sS'kernel_size'
 p22
 (lp23

@@ -29,7 +29,7 @@ def main():
 	# Dimension of the classification layer parameter
 	parser.add_argument('--classification_layers', type=int, default=[512, 256],
 	                    help='Classification Layer Size')
-	parser.add_argument('--keep_prob', type=float, default=1.0,
+	parser.add_argument('--keep_prob', type=float, default=0.5,
 	                    help='dropout keep probability')
 	# Lambda regularization parameter (L2)
 	parser.add_argument('--lambda_param', type=float, default=0.005,

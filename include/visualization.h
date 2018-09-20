@@ -13,7 +13,7 @@ void draw_3d_boundingbox(visualization_msgs::Marker& marker, const int label, co
     {
 	case 0: b = 0.0; // background
            break;
-        case 1: r = 1.0;// pedestrians
+        case 1: b = 1.0;// pedestrians
            break;
         case 2: g = 1.0; // vehicles
            break;
