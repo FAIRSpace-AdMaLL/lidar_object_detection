@@ -2,8 +2,8 @@
 Changelog for package lidar_object_detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2018-09-21)
+------------------
 * add tf_conversions
 * added nav_msgs dep
 * more fixed

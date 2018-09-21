@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>lidar_object_detection</name>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <description>Light-weight real-time high-accuracy point cloud clustering.</description>
   <maintainer email="zhi.yan@utbm.fr">Zhi Yan</maintainer>
   <maintainer email="lsun@lincoln.ac.uk">Li Sun</maintainer>
