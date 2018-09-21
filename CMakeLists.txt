@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
 	cv_bridge
 	roscpp
 	std_msgs
+	nav_msgs
 	sensor_msgs
 	visualization_msgs
 	geometry_msgs
