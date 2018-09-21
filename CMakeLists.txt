@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 	pcl_conversions
 	pcl_ros
 	eigen_conversions
+	tf_conversions
 )
 
 find_package(PCL REQUIRED)
@@ -24,7 +25,7 @@ add_message_files(FILES ClusterArray.msg)
 
 generate_messages(DEPENDENCIES std_msgs sensor_msgs)
 
-catkin_package(DEPENDS  eigen_conversions message_runtime std_msgs sensor_msgs)
+catkin_package(DEPENDS  tf_conversions eigen_conversions message_runtime std_msgs sensor_msgs)
 
 add_executable(adaptive_clustering src/adaptive_clustering.cpp)
 target_link_libraries(adaptive_clustering ${catkin_LIBRARIES})
