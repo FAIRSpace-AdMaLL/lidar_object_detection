@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(lidar_object_detection)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs visualization_msgs geometry_msgs pcl_conversions pcl_ros eigen_conversions)
+find_package(catkin REQUIRED COMPONENTS cv_bridge roscpp std_msgs sensor_msgs visualization_msgs geometry_msgs pcl_conversions pcl_ros eigen_conversions)
 
 find_package(PCL REQUIRED)
 find_package(Eigen3)
