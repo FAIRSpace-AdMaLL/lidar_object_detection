@@ -21,6 +21,8 @@
     <param name="sensor_model" value="VLP-16"/>
     <param name="frame_id" type="string" value="$(arg namespace_prefix)/velodyne"/> <!-- /fuser_laser_link, /graph_node/point2_fuser-->
     <param name="velodyne_topic" type="string" value="/$(arg namespace_prefix)/sensors/velodyne_points"/> 
+    <param name="cluster_pub" type="string" value="/$(arg namespace_prefix)/lidar_object_detection/clusters"/>
+    <param name="marker_pub" type="string" value="/$(arg namespace_prefix)/lidar_object_detection/markers"/>
     <param name="z_axis_min" value="-0.9"/>
     <param name="object_size_limit" value="true"/>
     <param name="print_fps" value="true"/>
@@ -30,6 +32,9 @@
   <node pkg="lidar_object_detection" type="inference_node.py" name="inference_node" output="screen" respawn="false">
     <param name="tf_model_path" value="$(find lidar_object_detection)/script/ncfm_demo"/>
     <param name="velodyne_topic" type="string" value="/$(arg namespace_prefix)/sensors/velodyne_points"/> 
+    <param name="cluster_sub" type="string" value="/$(arg namespace_prefix)/lidar_object_detection/clusters"/>
+    <param name="marker_sub" type="string" value="/$(arg namespace_prefix)/lidar_object_detection/markers"/>
+    <param name="marker_pub" type="string" value="/$(arg namespace_prefix)/lidar_object_detection/object_markers"/>
     <param name="frame_id" type="string" value="$(arg namespace_prefix)/velodyne"/> 
     <param name="target_frame" type="string" value="$(arg namespace_prefix)/odom"/> 
   </node>

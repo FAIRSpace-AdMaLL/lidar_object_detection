@@ -35,7 +35,7 @@ class Inference:
 		rospy.init_node('inference', anonymous=True)
 
 		VELODYNE_SUB_TOPIC = rospy.get_param('~velodyne_topic', '/velodyne_points')
-		DETECTOR_SUB_TOPIC = rospy.get_param('~detector_sub', '/adaptive_clustering/clusters')
+		CLUSTER_SUB_TOPIC = rospy.get_param('~cluster_sub', '/adaptive_clustering/clusters')
 		MARKER_SUB_TOPOC = rospy.get_param('~marker_sub', '/adaptive_clustering/markers')
 		MARKER_PUB_TOPOC = rospy.get_param('~marker_pub', '/adaptive_clustering/object_markers')
 		# STATIC_VELODYNE_PUB_TOPIC = rospy.get_param('~static_velodyne_topic', '/static_velodyne_points')
@@ -48,7 +48,7 @@ class Inference:
 		self.load_model()
 
 		self.velodyne_sub = message_filters.Subscriber(VELODYNE_SUB_TOPIC, PointCloud2, queue_size=1)
-		self.cluster_sub = message_filters.Subscriber(DETECTOR_SUB_TOPIC, ClusterArray, queue_size=1)
+		self.cluster_sub = message_filters.Subscriber(CLUSTER_SUB_TOPIC, ClusterArray, queue_size=1)
 		self.marker_sub = message_filters.Subscriber(MARKER_SUB_TOPOC, MarkerArray, queue_size=1)
 		#self.pose_sub = message_filters.Subscriber(POSE_SUB_TOPIC, PoseArray, queue_size=1)
 
