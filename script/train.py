@@ -15,9 +15,19 @@ def main():
 	parser = argparse.ArgumentParser()
 	# =====================================================================================
 	# Network Parameters
-	parser.add_argument('--mpl_size', type=int, default=[64, 64, 64, 128, 1024],
+	parser.add_argument('--netxyz_mpl_size', type=int, default=[64, 64, 64],
+						help='size of multi-layer perception hidden state')
+	parser.add_argument('--netxyz_kernel_size', type=int,
+						default=[[1, 3], [1, 1], [1, 1]],
+						help='size of convolutional kernel')
+	parser.add_argument('--neti_mpl_size', type=int, default=[64, 64, 64],
+						help='size of multi-layer perception hidden state')
+	parser.add_argument('--neti_kernel_size', type=int,
+						default=[[1, 1], [1, 1], [1, 1]],
+						help='size of convolutional kernel')
+	parser.add_argument('--mpl_size', type=int, default=[128, 1024],
 	                    help='size of multi-layer perception hidden state')
-	parser.add_argument('--kernel_size', type=int, default=[[1, 4], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1]],
+	parser.add_argument('--kernel_size', type=int, default=[[1, 1], [1, 1]],
 	                    help='size of convolutional kernel')
 	parser.add_argument('--input_dim', type=int, default=[100, 4, 1],
 	                    help='dim of input')
@@ -61,7 +71,7 @@ def main():
 
 def train(args):
 
-	valid = False
+	valid = True
 
 	# Create the data loader object. This object would preprocess the data in terms of
 	# batches each of size args.batch_size, of length args.seq_length
@@ -69,13 +79,13 @@ def train(args):
 	valid_data_loader = DataLoader(args.batch_size, mode='valid')
 
 	# data_loader.load_data('/home/kevin/ncfm_data', '/home/kevin/train.txt')
-	train_data_loader.load_data('/home/kevin/data/ncfm/bbox',
+	train_data_loader.load_data('/home/kevin/data/ncfm/bbox_train',
 	                            '/home/kevin/data/ncfm/train.txt')
 	train_data_loader.convert2images(maxn=args.input_dim[0])
 
 	if valid:
-		valid_data_loader.load_data('/home/kevin/data/kitti/training/bbox',
-	                            '/home/kevin/data/kitti/training/valid_index.txt')
+		valid_data_loader.load_data('/home/kevin/data/ncfm/bbox_valid',
+	                            '/home/kevin/data/ncfm/valid.txt')
 		valid_data_loader.convert2images(maxn=args.input_dim[0])
 
 	# Create a MLP model with the arguments
@@ -118,7 +128,7 @@ def train(args):
 				valid_counter = 0.
 
 				# Assign is_training
-				sess.run(tf.assign(model.is_training, False))
+				# sess.run(tf.assign(model.is_training, False))
 
 				valid_data_loader.reset_batch_pointer()
 
@@ -186,14 +196,14 @@ def train(args):
 					train_counter = 0.
 					train_accuracy = 0.
 
-				# Save the model if the current epoch and batch number match the frequency
-				if (e) % args.save_every == 0 and (
-					(e * train_data_loader.num_batches + b) > 0): #* train_data_loader.num_batches + b
-					# Save the arguments int the config file
-					with open(os.path.join('saved_models', 'config.pkl'), 'wb') as f:
-						pickle.dump(args, f)
+			# Save the model if the current epoch and batch number match the frequency
+			if (e) % args.save_every == 0 and (
+				(e * train_data_loader.num_batches + b) > 0): #* train_data_loader.num_batches + b
+				# Save the arguments int the config file
+				with open(os.path.join('saved_models', 'config.pkl'), 'wb') as f:
+					pickle.dump(args, f)
 
-					saver.save(sess, 'saved_models/model.ckpt')
+				saver.save(sess, 'saved_models/model.ckpt')
 
 
 if __name__ == '__main__':

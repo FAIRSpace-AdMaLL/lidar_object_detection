@@ -44,11 +44,23 @@ class Model():
         output_dim = args.output_dim
 
         # MLP
-        net = self.input_data
+        # net = self.input_data
+
+        net_xyz, net_i = tf.split(self.input_data, [3, 1], axis=2)
+
+        for i, (netxyz_mpl_size_i, netxyz_kernel_size_i) in enumerate(zip(args.netxyz_mpl_size, args.netxyz_kernel_size)):
+            net_xyz = tf.layers.conv2d(net_xyz, netxyz_mpl_size_i, netxyz_kernel_size_i, padding='valid', data_format='channels_last')
+            net_xyz = tf.nn.relu(net_xyz)
+
+        for i, (neti_mpl_size_i, neti_kernel_size_i) in enumerate(zip(args.neti_mpl_size, args.neti_kernel_size)):
+            net_i = tf.layers.conv2d(net_i, neti_mpl_size_i, neti_kernel_size_i, padding='valid', data_format='channels_last')
+            net_i = tf.nn.relu(net_i)
+
+        net = tf.concat([net_xyz, net_i], axis=2)
+
         for i, (mpl_size_i, kernel_size_i) in enumerate(zip(args.mpl_size, args.kernel_size)):
             net = tf.layers.conv2d(net, mpl_size_i, kernel_size_i, padding='valid', data_format='channels_last')
             net = tf.nn.relu(net)
-            # net = tf.layers.batch_normalization(net, axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True)
 
 
         # Global Pooling

@@ -34,16 +34,16 @@ class Inference:
 
 		rospy.init_node('inference', anonymous=True)
 
-		VELODYNE_SUB_TOPIC = "/velodyne_points"
-		DETECTOR_SUB_TOPIC = "/adaptive_clustering/clusters"
-		MARKER_SUB_TOPOC = "/adaptive_clustering/markers"
-		#POSE_SUB_TOPIC = "/object3d_detector/poses"
-		MARKER_PUB_TOPOC = "/adaptive_clustering/object_markers"
-		STATIC_VELODYNE_PUB_TOPIC = "/static_velodyne_points"
+		VELODYNE_SUB_TOPIC = rospy.get_param('~velodyne_topic', '/velodyne_points')
+		DETECTOR_SUB_TOPIC = rospy.get_param('~detector_sub', '/adaptive_clustering/clusters')
+		MARKER_SUB_TOPOC = rospy.get_param('~marker_sub', '/adaptive_clustering/markers')
+		MARKER_PUB_TOPOC = rospy.get_param('~marker_pub', '/adaptive_clustering/object_markers')
+		STATIC_VELODYNE_PUB_TOPIC = rospy.get_param('~static_velodyne_topic', '/static_velodyne_points')
 
 		self.tf_model_path = rospy.get_param('~tf_model_path', 'saved_models')
 		print self.tf_model_path
 		self.sensor_frame_id = rospy.get_param('~sensor_frame_id', 'velodyne') #velodyne_front
+		self.target_frame = rospy.get_param('~target_frame', 'odom') 
 
 		self.load_model()
 
@@ -128,7 +128,7 @@ class Inference:
 			cloud_np[:, :3] -= cloud_centriod
 			cloud_np[:, -1] = cloud_np[:, -1] / 255.
 			Cloud.append(cloud_np)
-			print cloud_np
+			# print cloud_np
 
 		Image = utility.convert2images(Cloud, self.saved_args.input_dim[0])
 
@@ -141,12 +141,11 @@ class Inference:
 		# pred = pred.tolist()
 
 		# transform detection to /map
-		target_frame = "world"
 		done = False
 
 		while not done:
 			try:
-				transform = self.tf_buffer.lookup_transform(target_frame, self.sensor_frame_id, rospy.Time(), rospy.Duration(10))
+				transform = self.tf_buffer.lookup_transform(self.target_frame, self.sensor_frame_id, rospy.Time(), rospy.Duration(10))
 				done = True
 			except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
 				print "transform2 exception"
@@ -164,11 +163,21 @@ class Inference:
 			if p == 1:
 				r = 1.0
 			elif p == 2:
-				g = 1.0
+				r = 1.0
+           			g = 1.0 # flotbot
 			elif p == 3:
 				b = 1.0
+           			r = 1.0 # pallet
+			elif p == 4:
+				g = 1.0 # pedestain
+       			elif p == 5: 
+				b = 1.0 # truck
+			elif p == 6:
+				r = 1.0
+           			g = 1.0
+           			b = 1.0 # wall
 			else:
-				b = 0.
+				r = 0.
 
 			m.color.r = r
 			m.color.g = g

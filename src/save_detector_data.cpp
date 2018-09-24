@@ -84,11 +84,11 @@ public:
   Detector_Saver()
   {
     
-    map_file = "/home/kevin/data/ncfm/map/map.txt";
-    string map_img_file = "/home/kevin/data/ncfm/map/label.jpg";
+    map_file = "/home/kevin/data/ncfm/map/ncfm_annotation1/map.txt";
+    string map_img_file = "/home/kevin/data/ncfm/map/ncfm_annotation1/label.png";
 
-    map_res = 0.1;
-    map_origin = Eigen::Vector2d(0.0, -9.9);
+    map_res = 0.15;
+    map_origin = Eigen::Vector2d(-13.950000, -15.000000);
 
     ncfm_map = cv::imread(map_img_file, cv::IMREAD_UNCHANGED);
 
@@ -241,10 +241,12 @@ void Detector_Saver::detectorCallback(const lidar_object_detection::ClusterArray
 
     if(visualize)
     {
-      if(label==0)
-        cv::circle(ncfm_map, cv::Point(map_pos(0), map_pos(1)), 5.0, cv::Scalar( 255, 255, 255 ), 1, 8);
-      else
+      if(label==1)
+        cv::circle(ncfm_map, cv::Point(map_pos(0), map_pos(1)), 5.0, cv::Scalar( 255, 0, 0 ), 1, 8);
+      else if(label==2)
         cv::circle(ncfm_map, cv::Point(map_pos(0), map_pos(1)), 5.0, cv::Scalar( 0, 255, 0 ), 1, 8);
+      else
+	cv::circle(ncfm_map, cv::Point(map_pos(0), map_pos(1)), 5.0, cv::Scalar( 255, 255, 255 ), 1, 8);
     }
 
     // visualization
@@ -297,7 +299,7 @@ int main(int argc, char** argv)
 
   Detector_Saver ds;
 
-  nh.param<std::string>("frame_id", ds.frame_id, std::string("/velodyne"));
+  nh.param<std::string>("frame_id", ds.frame_id, std::string("/robot5/velodyne"));
 
   string detector_topic = "/adaptive_clustering/clusters";
   ros::Subscriber detector_sub = nh.subscribe<lidar_object_detection::ClusterArray>(detector_topic, 1, &Detector_Saver::detectorCallback, &ds);

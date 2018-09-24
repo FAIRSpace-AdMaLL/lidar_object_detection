@@ -36,6 +36,7 @@ ros::Publisher marker_array_pub_;
 
 std::string sensor_model_;
 std::string frame_id_;
+std::string velodyne_topic_;
 bool print_fps_;
 float z_axis_min_;
 float z_axis_max_;
@@ -114,8 +115,8 @@ void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& ros_pc2_in) {
 	if(object_size_limit_) {
 	  Eigen::Vector4f min, max;
 	  pcl::getMinMax3D(*cluster, min, max);
-	  if((max[0]-min[0] < 0.2 || max[0]-min[0] > 1.0 ||
-	      max[1]-min[1] < 0.2 || max[1]-min[1] > 1.0 ||
+	  if((max[0]-min[0] < 0.2 || max[0]-min[0] > 2.0 ||
+	      max[1]-min[1] < 0.2 || max[1]-min[1] > 2.0 ||
 	      max[2]-min[2] < 0.5 || max[2]-min[2] > 2.0)) { 
 	    continue;
 	  }
@@ -200,27 +201,28 @@ void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& ros_pc2_in) {
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "adaptive_clustering");
-  
-  /*** Subscribers ***/
-  ros::NodeHandle nh;
-  ros::Subscriber point_cloud_sub = nh.subscribe<sensor_msgs::PointCloud2>("velodyne_points", 1, pointCloudCallback);
 
-  /*** Publishers ***/
-  ros::NodeHandle private_nh("~");
-  cluster_array_pub_ = private_nh.advertise<lidar_object_detection::ClusterArray>("clusters", 1);
-  cloud_filtered_pub_ = private_nh.advertise<sensor_msgs::PointCloud2>("cloud_filtered", 1);
-  pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("poses", 100);
-  marker_array_pub_ = private_nh.advertise<visualization_msgs::MarkerArray>("markers", 1);
-  
   /*** Parameters ***/
-  private_nh.param<std::string>("sensor_model", sensor_model_, "HDL-32E"); // VLP-16, HDL-32E, HDL-64E
+  ros::NodeHandle private_nh("~");
+  private_nh.param<std::string>("sensor_model", sensor_model_, "VLP-16"); // VLP-16, HDL-32E, HDL-64E
   private_nh.param<std::string>("frame_id", frame_id_, "velodyne");
+  private_nh.param<std::string>("velodyne_topic", velodyne_topic_, "velodyne_points");
   private_nh.param<bool>("print_fps", print_fps_, false);
   private_nh.param<float>("z_axis_min", z_axis_min_, -0.5);
   private_nh.param<float>("z_axis_max", z_axis_max_, 5.0);
   private_nh.param<int>("cluster_size_min", cluster_size_min_, 5);
   private_nh.param<int>("cluster_size_max", cluster_size_max_, 700000);
   private_nh.param<bool>("object_size_limit", object_size_limit_, false);
+  
+  /*** Subscribers ***/
+  ros::NodeHandle nh;
+  ros::Subscriber point_cloud_sub = nh.subscribe<sensor_msgs::PointCloud2>(velodyne_topic_, 1, pointCloudCallback);
+
+  /*** Publishers ***/
+  cluster_array_pub_ = private_nh.advertise<lidar_object_detection::ClusterArray>("clusters", 1);
+  cloud_filtered_pub_ = private_nh.advertise<sensor_msgs::PointCloud2>("cloud_filtered", 1);
+  pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("poses", 100);
+  marker_array_pub_ = private_nh.advertise<visualization_msgs::MarkerArray>("markers", 1);
   
   // Divide the point cloud into nested circular regions centred at the sensor.
   // For more details, see our IROS-17 paper "Online learning for human classification in 3D LiDAR-based tracking"
