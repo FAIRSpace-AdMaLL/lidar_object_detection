@@ -38,7 +38,7 @@ class Inference:
 		DETECTOR_SUB_TOPIC = rospy.get_param('~detector_sub', '/adaptive_clustering/clusters')
 		MARKER_SUB_TOPOC = rospy.get_param('~marker_sub', '/adaptive_clustering/markers')
 		MARKER_PUB_TOPOC = rospy.get_param('~marker_pub', '/adaptive_clustering/object_markers')
-		STATIC_VELODYNE_PUB_TOPIC = rospy.get_param('~static_velodyne_topic', '/static_velodyne_points')
+		# STATIC_VELODYNE_PUB_TOPIC = rospy.get_param('~static_velodyne_topic', '/static_velodyne_points')
 
 		self.tf_model_path = rospy.get_param('~tf_model_path', 'saved_models')
 		print self.tf_model_path
@@ -56,7 +56,7 @@ class Inference:
 		ts.registerCallback(self.infer)
 
 		self.marker_pub = rospy.Publisher(MARKER_PUB_TOPOC, MarkerArray, queue_size=1)
-		self.velodyne_pub = rospy.Publisher(STATIC_VELODYNE_PUB_TOPIC, PointCloud2, queue_size=1)
+		# self.velodyne_pub = rospy.Publisher(STATIC_VELODYNE_PUB_TOPIC, PointCloud2, queue_size=1)
 
 		self.tf_buffer = tf2_ros.Buffer()
 		self.tf2_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -178,6 +178,7 @@ class Inference:
            			b = 1.0 # wall
 			else:
 				r = 0.
+				continue
 
 			m.color.r = r
 			m.color.g = g
@@ -215,9 +216,9 @@ class Inference:
 		pointFiled = [pointFiledx, pointFiledy, pointFieldz, pointFieldi]
 
 		header.stamp = rospy.Time.now()
-		static_velodyne = point_cloud2.create_cloud(header, pointFiled, static_cloud)
+		# static_velodyne = point_cloud2.create_cloud(header, pointFiled, static_cloud)
 
-		self.velodyne_pub.publish(static_velodyne)
+		# self.velodyne_pub.publish(static_velodyne)
 
 		print("[inference_node]: runing time = " + str(time.time()-start_time))
 

@@ -51,6 +51,7 @@ int pose_array_seq = 0;
 
 int frames; clock_t start_time; bool reset = true;//fps
 void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& ros_pc2_in) {
+
   if(print_fps_)if(reset){frames=0;start_time=clock();reset=false;}//fps
   
   /*** Convert ROS message to PCL ***/
@@ -165,7 +166,7 @@ void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& ros_pc2_in) {
       pcl::getMinMax3D(*clusters[i], min, max);
 
       visualization_msgs::Marker marker;
-      marker.header.stamp = ros::Time::now();
+      marker.header.stamp = ros_pc2_in->header.stamp;
       marker.header.frame_id = frame_id_;
       marker.ns = "adaptive_clustering";
       marker.id = i;
@@ -179,14 +180,14 @@ void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& ros_pc2_in) {
   
   if(cluster_array.clusters.size()) {
     cluster_array.header.seq = ++cluster_array_seq;
-    cluster_array.header.stamp = ros::Time::now();
+    cluster_array.header.stamp = ros_pc2_in->header.stamp;
     cluster_array.header.frame_id = frame_id_;
     cluster_array_pub_.publish(cluster_array);
   }
 
   if(pose_array.poses.size()) {
     pose_array.header.seq = ++pose_array_seq;
-    pose_array.header.stamp = ros::Time::now();
+    pose_array.header.stamp = ros_pc2_in->header.stamp;
     pose_array.header.frame_id = frame_id_;
     pose_array_pub_.publish(pose_array);
     //std::cerr << "[adaptive_clustering] send " << pose_array.poses.size() << " poses" << std::endl;
