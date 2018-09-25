@@ -1,69 +1,16 @@
 <launch>
-
+  <!--<param name="use_sim_time" value="true"/>-->
   <arg name="namespace_prefix" default="robot5"/>
-  <arg name="file" default="/home/kevin/data/ncfm/bags/2018-09-20-17-20-09_new1.bag"/>
 
-  <!--<node pkg="tf" type="tf_remap" name="tf_remapper" output="screen">
-    <rosparam param="mappings">
-      [
-       {old: /robot4/base_link, new: /robot5/base_link},
-       {old: /robot4/kinect2_link, new: /robot5/kinect2_link},
-       {old: /robot4/laser2dtop, new: /robot5/laser2dtop},
-       {old: /robot4/laser2dfloor, new: /robot5/laser2dfloor}]
-    </rosparam>
-  </node>-->
-
-
-  <!--{old: /world, new: /robot5/odom},
-       {old: /odom_base_link, new: /robot5/base_footprint},-->
-
-  <!--<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0 0 0 0 0 0 1 /robot5/base_footprint /robot5/base_link 100" />-->
-
-
-  <!--<node pkg="rosbag" type="play" name="player" args="clock $(arg file)">
-    <remap from="tf" to="tf_old" />
-  </node> -->
-
-  <!-- rosbag play -->
-  
-  <param name="use_sim_time" value="true"/>
-  <!--<arg name="bag"/> <node pkg="rosbag" type="play" name="rosbag_play" args="clock $(arg bag)"/>-->
-
-  <!--<node pkg="tf" type="static_transform_publisher" name="map_to_laserscan0" args="0 0 0 0 0 0 1 map laserscan0 100"/>
-  <node pkg="tf" type="static_transform_publisher" name="map_to_laserscan1" args="0 0 0 0 0 0 1 map laserscan1 100"/>
-  <node pkg="tf" type="static_transform_publisher" name="map_to_velodyne" args="0 0 0 0 0 0 1 map velodyne 100"/> -->
-  
-  <node pkg="velodyne_pointcloud" type="cloud_node" name="convert_veloscans">
-     <param name="calibration" value="$(find lidar_object_detection)/config/vlp16.yaml"/>
-    <param name="min_range" value="0.4"/>
-    <param name="max_range" value="130.0"/>
-    <remap from="/velodyne_packets" to="/$(arg namespace_prefix)/sensors/velodyne_packets"/>
-    <remap from="/velodyne_points" to="/$(arg namespace_prefix)/sensors/velodyne_points"/>
-  </node>
-  
-  <!-- FLOBOT 3D Object Detector -->
-  <node pkg="lidar_object_detection" name="adaptive_clustering" type="adaptive_clustering">
-    <param name="sensor_model" value="VLP-16"/>
-    <param name="frame_id" type="string" value="$(arg namespace_prefix)/velodyne"/> <!-- /fuser_laser_link, /graph_node/point2_fuser-->
-    <param name="velodyne_topic" type="string" value="/$(arg namespace_prefix)/sensors/velodyne_points"/> 
-    <param name="z_axis_min" value="-0.9"/>
-    <param name="object_size_limit" value="true"/>
-    <param name="print_fps" value="true"/>
+  <!-- Deep Net Inference NOde -->
+  <node pkg="lidar_object_detection" type="inference_node.py" name="inference_node" output="screen" respawn="false">
+    <param name="tf_model_path" value="$(find lidar_object_detection)/script/ncfm_demo"/>
+    <param name="velodyne_topic" type="string" value="$(arg namespace_prefix)/sensors/velodyne_points"/> 
+    <param name="cluster_sub" type="string" value="$(arg namespace_prefix)/lidar_object_detection/clusters"/>
+    <param name="marker_sub" type="string" value="$(arg namespace_prefix)/lidar_object_detection/markers"/>
+    <param name="marker_pub" type="string" value="$(arg namespace_prefix)/lidar_object_detection/object_markers"/>
+    <param name="frame_id" type="string" value="$(arg namespace_prefix)/velodyne"/> 
+    <param name="target_frame" type="string" value="$(arg namespace_prefix)/odom"/> 
   </node>
 
-  <!-- <node pkg="lidar_object_detection" name="inference_node" type="inference_node.py">
-    <param name="tf_model_path" value="$(find lidar_object_detection)/script/ncfm_demo2"/>
-    <param name="sensor_frame_id" value="velodyne"/>
-  </node> -->
-
-
-  <!-- NBellotto's Bayes People Tracker -->
-  <!--<rosparam command="load" file="$(find adaptive_clustering)/config/object3d_detector_ncfm.yaml"/>
-  <node pkg="bayes_people_tracker" type="bayes_people_tracker" name="bayes_people_tracker" output="screen" respawn="false">
-    <param name="base_link" type="string" value="velodyne"/>
-    <param name="target_frame" type="string" value="world"/>
-  </node>-->
-  
-  <!-- ROS Visualization -->
-  <!--<node pkg="rviz" type="rviz" name="rviz" args="-d $(find adaptive_clustering)/config/object3d_detector_ncfm.rviz"/>-->
 </launch>
