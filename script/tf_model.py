@@ -89,7 +89,7 @@ class Model():
 
         if is_training:
             label = tf.one_hot(self.target_data, args.output_dim)
-            loss = tf.losses.softmax_cross_entropy(label, net)
+            loss = tf.losses.softmax_cross_entropy(label, net) # label_smoothing=0.8
             self.loss = loss
 
             # Get trainable_variables

@@ -50,7 +50,7 @@ def main():
 	                    help='minibatch size')
 	parser.add_argument('--num_epochs', type=int, default=100,
 	                    help='number of epochs')
-	parser.add_argument('--save_every', type=int, default=10,
+	parser.add_argument('--save_every', type=int, default=1,
 	                    help='save frequency')
 	# Gradient value at which it should be clipped
 	parser.add_argument('--grad_clip', type=float, default=10.,
@@ -59,11 +59,13 @@ def main():
 	parser.add_argument('--learning_rate', type=float, default=0.005,
 	                    help='learning rate')
 	# Decay rate for the learning rate parameter
-	parser.add_argument('--decay_rate', type=float, default=.95,
+	parser.add_argument('--decay_rate', type=float, default=.9,
 	                    help='decay rate for rmsprop')
 	# interval of display
 	parser.add_argument('--display', type=float, default=100,
 	                    help='set display interval')
+	parser.add_argument('--model_dir', type=str, default="./saved_models",
+	                    help='set the tf model directory to save')
 	# =====================================================================================
 	args = parser.parse_args()
 	train(args)
@@ -79,13 +81,11 @@ def train(args):
 	valid_data_loader = DataLoader(args.batch_size, mode='valid')
 
 	# data_loader.load_data('/home/kevin/ncfm_data', '/home/kevin/train.txt')
-	train_data_loader.load_data('/home/kevin/data/ncfm/bbox_train',
-	                            '/home/kevin/data/ncfm/train.txt')
+	train_data_loader.load_data('/home/kevin/data/ncfm/bbox_valid', '/home/kevin/data/ncfm/valid.txt')
 	train_data_loader.convert2images(maxn=args.input_dim[0])
 
 	if valid:
-		valid_data_loader.load_data('/home/kevin/data/ncfm/bbox_valid',
-	                            '/home/kevin/data/ncfm/valid.txt')
+		valid_data_loader.load_data('/home/kevin/data/ncfm/bbox_valid', '/home/kevin/data/ncfm/valid.txt')
 		valid_data_loader.convert2images(maxn=args.input_dim[0])
 
 	# Create a MLP model with the arguments
@@ -101,8 +101,20 @@ def train(args):
 
 		tf.summary.scalar('Realtime loss', model.loss)
 		tf.summary.scalar('Realtime learning rate', model.lr)
-		merged = tf.summary.merge_all()
-		train_writer = tf.summary.FileWriter('/home/kevin/.log', sess.graph)
+		all_summaries = tf.summary.merge_all()
+		train_writer = tf.summary.FileWriter(os.path.join(args.model_dir, 'log'), sess.graph)
+
+		# save the configuration and model
+		if os.path.isfile(os.path.join(args.model_dir, 'config.pkl')):
+			# Get the checkpoint state to load the model from
+			ckpt = tf.train.get_checkpoint_state(args.model_dir)
+			print('loading model: ', ckpt.model_checkpoint_path)
+			# Restore the model at the checpoint
+			saver.restore(sess, ckpt.model_checkpoint_path)
+		else:
+			# Save the arguments int the config file
+			with open(os.path.join(args.model_dir, 'config.pkl'), 'wb') as f:
+				pickle.dump(args, f)
 
 		# For each epoch
 		for e in range(args.num_epochs):
@@ -170,7 +182,9 @@ def train(args):
 				x, y = train_data_loader.next_batch()
 
 				feed = {model.input_data: x, model.target_data: y}
-				loss, pred, _ = sess.run([model.loss, model.pred, model.train_op], feed)
+				loss, pred, summaries, _ = sess.run([model.loss, model.pred, all_summaries, model.train_op], feed)
+
+				train_writer.add_summary(summaries, e*train_data_loader.num_batches+b)
 
 				# Toc
 				end = time.time()
@@ -199,11 +213,14 @@ def train(args):
 			# Save the model if the current epoch and batch number match the frequency
 			if (e) % args.save_every == 0 and (
 				(e * train_data_loader.num_batches + b) > 0): #* train_data_loader.num_batches + b
-				# Save the arguments int the config file
-				with open(os.path.join('saved_models', 'config.pkl'), 'wb') as f:
-					pickle.dump(args, f)
+				checkpoint_path = os.path.join(args.model_dir, 'model.ckpt')
+				saver.save(sess, checkpoint_path, global_step=e * train_data_loader.num_batches + b+1)
+				print("model saved to {}".format(checkpoint_path))
 
-				saver.save(sess, 'saved_models/model.ckpt')
+				# Save the arguments int the config file
+				with open(os.path.join(args.model_dir, 'config.pkl'), 'wb') as f:
+					pickle.dump(args, f)
+					saver.save(sess, os.path.join(args.model_dir, 'model.ckpt'))
 
 
 if __name__ == '__main__':

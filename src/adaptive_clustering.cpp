@@ -37,6 +37,8 @@ ros::Publisher marker_array_pub_;
 std::string sensor_model_;
 std::string frame_id_;
 std::string velodyne_topic_;
+std::string cluster_pub_;
+std::string marker_pub_;
 bool print_fps_;
 float z_axis_min_;
 float z_axis_max_;
@@ -208,6 +210,8 @@ int main(int argc, char **argv) {
   private_nh.param<std::string>("sensor_model", sensor_model_, "VLP-16"); // VLP-16, HDL-32E, HDL-64E
   private_nh.param<std::string>("frame_id", frame_id_, "velodyne");
   private_nh.param<std::string>("velodyne_topic", velodyne_topic_, "velodyne_points");
+  private_nh.param<std::string>("cluster_pub", cluster_pub_, "clusters");
+  private_nh.param<std::string>("marker_pub", marker_pub_, "markers");
   private_nh.param<bool>("print_fps", print_fps_, false);
   private_nh.param<float>("z_axis_min", z_axis_min_, -0.5);
   private_nh.param<float>("z_axis_max", z_axis_max_, 5.0);
@@ -220,10 +224,10 @@ int main(int argc, char **argv) {
   ros::Subscriber point_cloud_sub = nh.subscribe<sensor_msgs::PointCloud2>(velodyne_topic_, 1, pointCloudCallback);
 
   /*** Publishers ***/
-  cluster_array_pub_ = private_nh.advertise<lidar_object_detection::ClusterArray>("clusters", 1);
+  cluster_array_pub_ = private_nh.advertise<lidar_object_detection::ClusterArray>(cluster_pub_, 1);
   cloud_filtered_pub_ = private_nh.advertise<sensor_msgs::PointCloud2>("cloud_filtered", 1);
   pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("poses", 100);
-  marker_array_pub_ = private_nh.advertise<visualization_msgs::MarkerArray>("markers", 1);
+  marker_array_pub_ = private_nh.advertise<visualization_msgs::MarkerArray>(marker_pub_, 1);
   
   // Divide the point cloud into nested circular regions centred at the sensor.
   // For more details, see our IROS-17 paper "Online learning for human classification in 3D LiDAR-based tracking"

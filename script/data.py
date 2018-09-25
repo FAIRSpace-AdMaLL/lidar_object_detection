@@ -83,10 +83,9 @@ class DataLoader:
 
 			# if self.mode == 'train':
 			# 	imgi[:, :, 0] = self.apply_random_rotate(imgi[:, :, 0])
-
+				
 			x_batch.append(imgi)
 			y_batch.append(labeli)
-
 			self.tick_batch_pointer()
 
 		return x_batch, y_batch

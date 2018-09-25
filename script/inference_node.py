@@ -13,6 +13,7 @@ import tf2_ros
 from sensor_msgs import point_cloud2
 from sensor_msgs.msg import PointCloud2, PointField
 
+from spencer_tracking_msgs.msg import DetectedPersons, DetectedPerson
 
 # Utility
 import time, os, pickle
@@ -35,20 +36,31 @@ class Inference:
 		rospy.init_node('inference', anonymous=True)
 
 		VELODYNE_SUB_TOPIC = rospy.get_param('~velodyne_topic', '/velodyne_points')
-		DETECTOR_SUB_TOPIC = rospy.get_param('~detector_sub', '/adaptive_clustering/clusters')
+		CLUSTER_SUB_TOPIC = rospy.get_param('~cluster_sub', '/adaptive_clustering/clusters')
+		
 		MARKER_SUB_TOPOC = rospy.get_param('~marker_sub', '/adaptive_clustering/markers')
 		MARKER_PUB_TOPOC = rospy.get_param('~marker_pub', '/adaptive_clustering/object_markers')
-		# STATIC_VELODYNE_PUB_TOPIC = rospy.get_param('~static_velodyne_topic', '/static_velodyne_points')
+		STATIC_VELODYNE_PUB_TOPIC = rospy.get_param('~static_velodyne_topic', '/static_velodyne_points')
+		DETECTED_PERSONS_PUB_TOPIC = rospy.get_param('~detected_persons_pub', 'detected_persons')
 
 		self.tf_model_path = rospy.get_param('~tf_model_path', 'saved_models')
-		print self.tf_model_path
 		self.sensor_frame_id = rospy.get_param('~sensor_frame_id', 'velodyne') #velodyne_front
 		self.target_frame = rospy.get_param('~target_frame', 'odom') 
+
+		self.is_save_bbox = rospy.get_param('~is_save_bbox', False) 
+		
+		print "VELODYNE_SUB_TOPIC: " + VELODYNE_SUB_TOPIC
+		print "CLUSTER_SUB_TOPIC: " + CLUSTER_SUB_TOPIC
+		print "MARKER_SUB_TOPOC: " + MARKER_SUB_TOPOC
+		print "MARKER_PUB_TOPOC: " + MARKER_PUB_TOPOC
+		print "tf model path: " + self.tf_model_path
+		print "sensor frame id: " + self.sensor_frame_id
+		print "self.target_frame: " + self.target_frame
 
 		self.load_model()
 
 		self.velodyne_sub = message_filters.Subscriber(VELODYNE_SUB_TOPIC, PointCloud2, queue_size=1)
-		self.cluster_sub = message_filters.Subscriber(DETECTOR_SUB_TOPIC, ClusterArray, queue_size=1)
+		self.cluster_sub = message_filters.Subscriber(CLUSTER_SUB_TOPIC, ClusterArray, queue_size=1)
 		self.marker_sub = message_filters.Subscriber(MARKER_SUB_TOPOC, MarkerArray, queue_size=1)
 		#self.pose_sub = message_filters.Subscriber(POSE_SUB_TOPIC, PoseArray, queue_size=1)
 
@@ -56,7 +68,8 @@ class Inference:
 		ts.registerCallback(self.infer)
 
 		self.marker_pub = rospy.Publisher(MARKER_PUB_TOPOC, MarkerArray, queue_size=1)
-		# self.velodyne_pub = rospy.Publisher(STATIC_VELODYNE_PUB_TOPIC, PointCloud2, queue_size=1)
+		self.velodyne_pub = rospy.Publisher(STATIC_VELODYNE_PUB_TOPIC, PointCloud2, queue_size=1)
+		self.detected_persons_pub = rospy.Publisher(DETECTED_PERSONS_PUB_TOPIC, DetectedPersons, queue_size=1)
 
 		self.tf_buffer = tf2_ros.Buffer()
 		self.tf2_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -154,6 +167,9 @@ class Inference:
 		print "transform done!"
 
 		objs_markers = MarkerArray()
+		detected_persons = DetectedPersons()
+		detected_persons.header = velodyne_points.header
+
 		for p, m, o, f in zip(pred, marker_array.markers, output, feature):
 
 			r = 0
@@ -162,20 +178,20 @@ class Inference:
 
 			if p == 1:
 				r = 1.0
+				bbox_min = m.points[10]
+				bbox_max = m.points[0]
+
+				detectedPerson = DetectedPerson()
+				detectedPerson.pose.pose.position.x = (bbox_min.x + bbox_max.x) / 2.0
+				detectedPerson.pose.pose.position.y = (bbox_min.y + bbox_max.y) / 2.0
+				detectedPerson.pose.pose.position.z = (bbox_min.z + bbox_max.z) / 2.0
+				detectedPerson.modality = DetectedPerson.MODALITY_GENERIC_LASER_3D
+				detectedPerson.confidence = 1.0
+				detectedPerson.detection_id = 0
+				detected_persons.detections.append(detectedPerson)
 			elif p == 2:
 				r = 1.0
-           			g = 1.0 # flotbot
-			elif p == 3:
-				b = 1.0
-           			r = 1.0 # pallet
-			elif p == 4:
-				g = 1.0 # pedestain
-       			elif p == 5: 
-				b = 1.0 # truck
-			elif p == 6:
-				r = 1.0
-           			g = 1.0
-           			b = 1.0 # wall
+           			g = 1.0 # truck
 			else:
 				r = 0.
 				continue
@@ -186,39 +202,44 @@ class Inference:
 
 			objs_markers.markers.append(m)
 
-			#if p >= 1: #
-			#	static_cloud = self.crop_box(static_cloud, m)
+			if p >= 1: #
+				static_cloud = self.crop_box(static_cloud, m)
 
-			#if is_save:
-			#	bbox_min = m.points[10]
-			#	bbox_max = m.points[0]
+			if self.is_save_bbox:
+				bbox_min = m.points[10]
+				bbox_max = m.points[0]
 
-			#	bbox_min_pt = self.transform_3d_pt([bbox_min.x, bbox_min.y, bbox_min.z], transform)
-			#	bbox_max_pt = self.transform_3d_pt([bbox_max.x, bbox_max.y, bbox_max.z], transform)
+				bbox_min_pt = self.transform_3d_pt([bbox_min.x, bbox_min.y, bbox_min.z], transform)
+				bbox_max_pt = self.transform_3d_pt([bbox_max.x, bbox_max.y, bbox_max.z], transform)
 
-			#	output_line = [frame_count] + bbox_min_pt + bbox_max_pt + o.tolist() + f.tolist()
+				output_line = [frame_count] + bbox_min_pt + bbox_max_pt + o.tolist() + f.tolist()
 
-			#	for i in output_line:
-			#		fout.write("%f "% i)
+				for i in output_line:
+					fout.write("%f "% i)
 
-			#	fout.write("\n")
+				fout.write("\n")
 
 		frame_count += 1
 
 		self.marker_pub.publish(objs_markers)
+		self.detected_persons_pub.publish(detected_persons)
 
-		header = velodyne_points.header
+		print self.velodyne_pub.get_num_connections()
 
-		pointFiledx = PointField('x', 0, 7, 1)
-		pointFiledy = PointField('y', 4, 7, 1)
-		pointFieldz = PointField('z', 8, 7, 1)
-		pointFieldi = PointField('intensity', 12, 7, 1)
-		pointFiled = [pointFiledx, pointFiledy, pointFieldz, pointFieldi]
+		if self.velodyne_pub.get_num_connections():
 
-		header.stamp = rospy.Time.now()
-		# static_velodyne = point_cloud2.create_cloud(header, pointFiled, static_cloud)
+			header = velodyne_points.header
 
-		# self.velodyne_pub.publish(static_velodyne)
+			pointFiledx = PointField('x', 0, 7, 1)
+			pointFiledy = PointField('y', 4, 7, 1)
+			pointFieldz = PointField('z', 8, 7, 1)
+			pointFieldi = PointField('intensity', 12, 7, 1)
+			pointFiled = [pointFiledx, pointFiledy, pointFieldz, pointFieldi]
+
+			header = velodyne_points.header
+			static_velodyne = point_cloud2.create_cloud(header, pointFiled, static_cloud)
+
+			self.velodyne_pub.publish(static_velodyne)
 
 		print("[inference_node]: runing time = " + str(time.time()-start_time))
 
