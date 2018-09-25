@@ -81,7 +81,7 @@ def train(args):
 	valid_data_loader = DataLoader(args.batch_size, mode='valid')
 
 	# data_loader.load_data('/home/kevin/ncfm_data', '/home/kevin/train.txt')
-	train_data_loader.load_data('/home/kevin/data/ncfm/bbox_valid', '/home/kevin/data/ncfm/valid.txt')
+	train_data_loader.load_data('/home/kevin/data/ncfm/bbox_train', '/home/kevin/data/ncfm/train.txt')
 	train_data_loader.convert2images(maxn=args.input_dim[0])
 
 	if valid:

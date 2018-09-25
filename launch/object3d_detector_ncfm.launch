@@ -24,7 +24,7 @@
 
   <!-- Deep Net Inference NOde -->
   <node pkg="lidar_object_detection" type="inference_node.py" name="inference_node" output="screen" respawn="false">
-    <param name="tf_model_path" value="$(find lidar_object_detection)/script/ncfm_demo"/>
+    <param name="tf_model_path" value="$(find lidar_object_detection)/script/model_test"/>
     <param name="velodyne_topic" type="string" value="$(arg namespace_prefix)/sensors/velodyne_points"/> 
     <param name="cluster_sub" type="string" value="$(arg namespace_prefix)/lidar_object_detection/clusters"/>
     <param name="marker_sub" type="string" value="$(arg namespace_prefix)/lidar_object_detection/markers"/>

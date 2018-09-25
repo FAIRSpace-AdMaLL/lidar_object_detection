@@ -104,7 +104,7 @@ public:
 
 public:
   string map_file;
-  string detector_topic;
+  string cluster_topic;
   string sensor_odom_topic;
   string frame_id;
 
@@ -239,6 +239,9 @@ void Detector_Saver::detectorCallback(const lidar_object_detection::ClusterArray
       cout << " label: " << label << endl;
     }
 
+    if(label==0 && (double(rand())/double(RAND_MAX)) > 0.3)
+      continue;
+
     if(visualize)
     {
       if(label==1)
@@ -246,7 +249,7 @@ void Detector_Saver::detectorCallback(const lidar_object_detection::ClusterArray
       else if(label==2)
         cv::circle(ncfm_map, cv::Point(map_pos(0), map_pos(1)), 5.0, cv::Scalar( 0, 255, 0 ), 1, 8);
       else
-	cv::circle(ncfm_map, cv::Point(map_pos(0), map_pos(1)), 5.0, cv::Scalar( 255, 255, 255 ), 1, 8);
+	      cv::circle(ncfm_map, cv::Point(map_pos(0), map_pos(1)), 5.0, cv::Scalar( 255, 255, 255 ), 1, 8);
     }
 
     // visualization
@@ -298,13 +301,12 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   Detector_Saver ds;
+  std::string cluster_topic;
 
   nh.param<std::string>("frame_id", ds.frame_id, std::string("/robot5/velodyne"));
+  nh.param<std::string>("cluster_sub", cluster_topic, std::string("/robot5/lidar_object_detection/clusters"));
 
-  string detector_topic = "/adaptive_clustering/clusters";
-  ros::Subscriber detector_sub = nh.subscribe<lidar_object_detection::ClusterArray>(detector_topic, 1, &Detector_Saver::detectorCallback, &ds);
-
-
+  ros::Subscriber detector_sub = nh.subscribe<lidar_object_detection::ClusterArray>(cluster_topic, 1, &Detector_Saver::detectorCallback, &ds);
 
   ros::spin();
 

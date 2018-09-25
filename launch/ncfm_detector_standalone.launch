@@ -1,0 +1,31 @@
+<launch>
+  <param name="use_sim_time" value="true"/>
+  <arg name="namespace_prefix" default="robot5"/>
+  
+  <node pkg="velodyne_pointcloud" type="cloud_node" name="convert_veloscans">
+     <param name="calibration" value="$(find lidar_object_detection)/config/vlp16.yaml"/>
+    <param name="min_range" value="0.4"/>
+    <param name="max_range" value="130.0"/>
+    <remap from="/velodyne_packets" to="/$(arg namespace_prefix)/sensors/velodyne_packets"/>
+    <remap from="/velodyne_points" to="/$(arg namespace_prefix)/sensors/velodyne_points"/>
+  </node>
+  
+  <!-- FLOBOT 3D Object Detector -->
+  <node pkg="lidar_object_detection" name="adaptive_clustering" type="adaptive_clustering">
+    <param name="sensor_model" value="VLP-16"/>
+    <param name="frame_id" type="string" value="$(arg namespace_prefix)/velodyne"/> <!-- /fuser_laser_link, /graph_node/point2_fuser-->
+    <param name="velodyne_topic" type="string" value="/$(arg namespace_prefix)/sensors/velodyne_points"/> 
+    <param name="cluster_pub" type="string" value="/$(arg namespace_prefix)/lidar_object_detection/clusters"/>
+    <param name="marker_pub" type="string" value="/$(arg namespace_prefix)/lidar_object_detection/markers"/>
+    <param name="z_axis_min" value="-0.9"/>
+    <param name="object_size_limit" value="true"/>
+    <param name="print_fps" value="true"/>
+  </node>
+
+  <!-- Generate ground truth and save -->
+  <!--<node pkg="lidar_object_detection" name="save_detector_data_node" type="save_detector_data">
+    <param name="frame_id" type="string" value="$/(arg namespace_prefix)/velodyne"/> 
+    <param name="cluster_sub" type="string" value="/$(arg namespace_prefix)/lidar_object_detection/clusters"/>
+  </node>-->
+
+</launch>
