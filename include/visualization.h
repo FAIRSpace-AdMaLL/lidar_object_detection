@@ -73,5 +73,5 @@ void draw_3d_boundingbox(visualization_msgs::Marker& marker, const int label, co
       marker.color.b = b;
     }
     
-    marker.lifetime = ros::Duration(0.25);
+    marker.lifetime = ros::Duration(0.2);
 }

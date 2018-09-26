@@ -1,6 +1,10 @@
 <launch>
-  <param name="use_sim_time" value="true"/>
-  <arg name="namespace_prefix" default="robot5"/>
+
+  <arg name="sim_time" default="false" />
+  <arg name="robot" default="robot5" />
+
+  <param name="use_sim_time" value="$(arg sim_time)"/>
+  <arg name="namespace_prefix" default="$(arg robot)"/>
   
   <node pkg="velodyne_pointcloud" type="cloud_node" name="convert_veloscans">
      <param name="calibration" value="$(find lidar_object_detection)/config/vlp16.yaml"/>
@@ -24,7 +28,7 @@
 
   <!-- Deep Net Inference NOde -->
   <node pkg="lidar_object_detection" type="inference_node.py" name="inference_node" output="screen" respawn="false">
-    <param name="tf_model_path" value="$(find lidar_object_detection)/script/model_test"/>
+    <param name="tf_model_path" value="$(find lidar_object_detection)/script/ncfm_demo"/>
     <param name="velodyne_topic" type="string" value="$(arg namespace_prefix)/sensors/velodyne_points"/> 
     <param name="cluster_sub" type="string" value="$(arg namespace_prefix)/lidar_object_detection/clusters"/>
     <param name="marker_sub" type="string" value="$(arg namespace_prefix)/lidar_object_detection/markers"/>

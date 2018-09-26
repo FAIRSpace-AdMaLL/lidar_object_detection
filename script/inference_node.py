@@ -156,7 +156,7 @@ class Inference:
 		# transform detection to /map
 		done = False
 
-		while not done:
+		while not done and self.is_save_bbox:
 			try:
 				transform = self.tf_buffer.lookup_transform(self.target_frame, self.sensor_frame_id, rospy.Time(), rospy.Duration(10))
 				done = True
@@ -223,8 +223,6 @@ class Inference:
 
 		self.marker_pub.publish(objs_markers)
 		self.detected_persons_pub.publish(detected_persons)
-
-		print self.velodyne_pub.get_num_connections()
 
 		if self.velodyne_pub.get_num_connections():
 
